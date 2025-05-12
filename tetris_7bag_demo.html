@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo 7-Bag Randomizer (Không giới hạn lặp)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #121212;
+      color: #fff;
+    }
+    h1 {
+      text-align: center;
+      color: #00ffff;
+      margin-bottom: 30px;
+    }
+    .container {
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 255, 255, 0.2);
+      margin-bottom: 20px;
+    }
+    .controls {
+      display: flex;
+      margin-bottom: 20px;
+      gap: 10px;
+      justify-content: center;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #00cccc;
+      color: black;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background-color: #00ffff;
+      transform: translateY(-2px);
+    }
+    .tetris-block {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      margin: 5px;
+      color: black;
+      text-align: center;
+      line-height: 40px;
+      font-weight: bold;
+      border-radius: 4px;
+    }
+    .tetris-piece-I { background-color: #00f0f0; }
+    .tetris-piece-O { background-color: #f0f000; }
+    .tetris-piece-T { background-color: #a000f0; }
+    .tetris-piece-J { background-color: #0000f0; }
+    .tetris-piece-L { background-color: #f0a000; }
+    .tetris-piece-S { background-color: #00f000; }
+    .tetris-piece-Z { background-color: #f00000; }
+    
+    .pieces-container {
+      margin: 20px 0;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    
+    .bag-container {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #2a2a2a;
+      border-radius: 4px;
+      border-left: 5px solid #00cccc;
+    }
+    
+    .history {
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 10px;
+      background-color: #2a2a2a;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+    
+    .history-bag {
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px dashed #555;
+    }
+    
+    h3 {
+      margin-top: 0;
+      color: #00ffff;
+    }
+    
+    .info {
+      background-color: #2a2a2a;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    
+    .counter {
+      display: inline-block;
+      background-color: #00cccc;
+      color: black;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 5px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Demo Tetris 7-Bag Randomizer</h1>
+  
+  <div class="info">
+    <p>Hệ thống 7-bag trong Tetris đảm bảo mỗi loại khối (I, O, T, J, L, S, Z) xuất hiện chính xác một lần trong mỗi túi 7 khối. Demo này <strong>không áp dụng giới hạn lặp lại</strong>, cho phép các khối xuất hiện liên tiếp giữa các túi.</p>
+    <p>Vì mỗi túi được xáo trộn độc lập, nên có thể có khối giống nhau ở cuối túi này và đầu túi kế tiếp.</p>
+  </div>
+  
+  <div class="container">
+    <div class="controls">
+      <button id="nextPiece">Lấy khối tiếp theo</button>
+      <button id="newBag">Tạo túi mới</button>
+      <button id="reset">Làm mới</button>
+    </div>
+    
+    <div class="bag-container">
+      <h3>Túi hiện tại: <span class="counter" id="bagCount">1</span></h3>
+      <div id="currentBag" class="pieces-container"></div>
+      <p>Còn lại: <span id="remainingCount">7</span> khối</p>
+    </div>
+    
+    <div class="bag-container">
+      <h3>Khối vừa lấy:</h3>
+      <div id="nextPiece" class="pieces-container"></div>
+    </div>
+    
+    <div>
+      <h3>Lịch sử các khối đã lấy:</h3>
+      <div id="history" class="history"></div>
+    </div>
+  </div>
+
+  <script src="tetris_7bag.js"></script>
+  <script>
+    // Khởi tạo randomizer
+    const randomizer = new TetrisBagRandomizer();
+    
+    // Các biến theo dõi
+    let pieceCount = 0;
+    let bagCount = 1;
+    let historyPieces = [];
+    let historyBags = [[]];
+    
+    // Khởi tạo UI
+    updateBagDisplay();
+    
+    // Bắt các sự kiện
+    document.getElementById('nextPiece').addEventListener('click', getNextPiece);
+    document.getElementById('newBag').addEventListener('click', createNewBag);
+    document.getElementById('reset').addEventListener('click', resetRandomizer);
+    
+    function getNextPiece() {
+      const piece = randomizer.nextPiece();
+      pieceCount++;
+      
+      // Thêm vào lịch sử
+      historyPieces.push(piece);
+      historyBags[historyBags.length - 1].push(piece);
+      
+      // Kiểm tra nếu đã lấy hết túi
+      if (randomizer.currentBag.length === 0) {
+        bagCount++;
+        historyBags.push([]);
+        updateBagCounter();
+      }
+      
+      // Cập nhật UI
+      updateNextPieceDisplay(piece);
+      updateBagDisplay();
+      updateHistoryDisplay();
+    }
+    
+    function createNewBag() {
+      randomizer.generateNewBag();
+      bagCount++;
+      historyBags.push([]);
+      updateBagDisplay();
+      updateBagCounter();
+    }
+    
+    function resetRandomizer() {
+      randomizer.generateNewBag();
+      pieceCount = 0;
+      bagCount = 1;
+      historyPieces = [];
+      historyBags = [[]];
+      
+      updateBagCounter();
+      updateBagDisplay();
+      updateNextPieceDisplay(null);
+      updateHistoryDisplay();
+    }
+    
+    function updateBagCounter() {
+      document.getElementById('bagCount').textContent = bagCount;
+    }
+    
+    function updateBagDisplay() {
+      const bagElement = document.getElementById('currentBag');
+      bagElement.innerHTML = '';
+      
+      // Hiển thị túi hiện tại
+      const currentBag = randomizer.getCurrentBag();
+      for (let i = 0; i < currentBag.length; i++) {
+        const piece = currentBag[i];
+        const pieceElement = createPieceElement(piece);
+        bagElement.appendChild(pieceElement);
+      }
+      
+      document.getElementById('remainingCount').textContent = currentBag.length;
+    }
+    
+    function updateNextPieceDisplay(piece) {
+      const nextPieceElement = document.getElementById('nextPiece');
+      nextPieceElement.innerHTML = '';
+      
+      if (piece) {
+        const pieceElement = createPieceElement(piece);
+        nextPieceElement.appendChild(pieceElement);
+      } else {
+        nextPieceElement.innerHTML = '<p>Chưa có khối nào được lấy</p>';
+      }
+    }
+    
+    function updateHistoryDisplay() {
+      const historyElement = document.getElementById('history');
+      historyElement.innerHTML = '';
+      
+      // Hiển thị lịch sử theo túi
+      for (let bagIndex = 0; bagIndex < historyBags.length; bagIndex++) {
+        const bag = historyBags[bagIndex];
+        
+        if (bag.length > 0) {
+          const bagElement = document.createElement('div');
+          bagElement.className = 'history-bag';
+          
+          const bagHeader = document.createElement('h4');
+          bagHeader.textContent = `Túi #${bagIndex + 1}:`;
+          bagElement.appendChild(bagHeader);
+          
+          const piecesContainer = document.createElement('div');
+          piecesContainer.className = 'pieces-container';
+          
+          for (let i = 0; i < bag.length; i++) {
+            const piece = bag[i];
+            const pieceElement = createPieceElement(piece);
+            piecesContainer.appendChild(pieceElement);
+          }
+          
+          bagElement.appendChild(piecesContainer);
+          historyElement.appendChild(bagElement);
+        }
+      }
+      
+      // Nếu không có lịch sử
+      if (historyPieces.length === 0) {
+        historyElement.innerHTML = '<p>Không có lịch sử</p>';
+      }
+    }
+    
+    function createPieceElement(piece) {
+      const pieceElement = document.createElement('div');
+      pieceElement.className = `tetris-block tetris-piece-${piece}`;
+      pieceElement.textContent = piece;
+      return pieceElement;
+    }
+  </script>
+</body>
+</html> 

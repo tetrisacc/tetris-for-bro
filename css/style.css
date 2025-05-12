@@ -1,0 +1,523 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Nunito', sans-serif;
+}
+
+body {
+    background-color: #0a1a20;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-align-items: center;
+    align-items: center;
+    min-height: 100vh;
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    color: white;
+    background-size: 40px 40px;
+    overflow: hidden;
+    padding-bottom: 50px;
+    position: relative;
+}
+
+.container {
+    display: -webkit-flex;
+    display: flex;
+    gap: 30px;
+    padding: 30px;
+    background-color: rgba(10, 15, 25, 0.8);
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    perspective: 1000;
+    will-change: transform;
+    border: 2px solid #00ffff;
+    max-height: calc(100vh - 180px);
+    overflow: visible;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.game-grid {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-align-items: center;
+    align-items: center;
+    order: 2;
+    position: relative;
+}
+
+.game-grid::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.2);
+    border-radius: 5px;
+}
+
+.game-info {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    gap: 15px;
+    width: 250px;
+    order: 3;
+}
+
+.hold-container {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    gap: 15px;
+    width: 180px;
+    order: 1;
+}
+
+.next-pieces-container {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    gap: 15px;
+    width: 180px;
+    order: 3;
+}
+
+h1 {
+    text-align: center;
+    color: #00ffff;
+    font-size: 22px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    letter-spacing: 2px;
+    position: relative;
+    margin-bottom: 10px;
+    font-family: 'Press Start 2P', cursive;
+}
+
+h1:after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: -webkit-linear-gradient(left, transparent, #00ffff, transparent);
+    background: linear-gradient(90deg, transparent, #00ffff, transparent);
+}
+
+.score-container {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    border: 1px solid #333;
+}
+
+.score-container p {
+    font-family: 'Nunito', sans-serif;
+    margin: 8px 0;
+    font-size: 16px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+}
+
+.score-container span {
+    font-weight: bold;
+    color: #00ffff;
+}
+
+#tetris-canvas {
+    width: 300px;
+    height: 600px;
+    background-color: #000;
+    border: 3px solid #222;
+    -webkit-transition: transform 0.1s ease-in-out;
+    transition: transform 0.1s ease-in-out;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;
+    will-change: transform;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+}
+
+#next-canvas, #hold-canvas {
+    width: 150px;
+    height: 150px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 2px solid #333;
+    display: block;
+    margin: 5px auto;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;
+    border-radius: 5px;
+}
+
+.hold-piece, .next-piece {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+}
+
+.hold-piece p, .next-piece p {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    margin-bottom: 10px;
+    color: #00ffff;
+}
+
+/* Phần CSS cho hàng đợi khối tiếp theo */
+.next-pieces-queue {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.next-piece-preview {
+    background-color: rgba(10, 15, 25, 0.8);
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid #333;
+}
+
+canvas {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* CSS cho hiệu ứng phát sáng khi giữ khối */
+.hold-piece {
+    position: relative;
+    overflow: hidden;
+}
+
+.hold-piece::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: -webkit-linear-gradient(left, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    -webkit-animation: hold-shine 2s infinite;
+    animation: hold-shine 2s infinite;
+}
+
+@-webkit-keyframes hold-shine {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: 100%; }
+}
+
+@keyframes hold-shine {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: 100%; }
+}
+
+/* CSS cho nút Hold disabled */
+.hold-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+#start-button {
+    padding: 12px;
+    background-color: #00ffff;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    -webkit-transition: all 0.3s;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    font-family: 'Press Start 2P', cursive;
+}
+
+#start-button:hover {
+    background-color: #45f6ff;
+    -webkit-transform: translateY(-2px);
+    transform: translateY(-2px);
+    box-shadow: 0 7px 20px rgba(0, 0, 0, 0.4);
+}
+
+#start-button:active {
+    -webkit-transform: translateY(1px);
+    transform: translateY(1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.controls-info {
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    font-size: 14px;
+    font-family: 'Nunito', sans-serif;
+}
+
+.controls-info p {
+    margin: 5px 0;
+}
+
+.controls-info p:first-child {
+    color: #00ffff;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Hiệu ứng combo */
+.combo-message {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
+    pointer-events: none;
+    z-index: 100;
+    font-size: 24px;
+    text-shadow: 0 0 10px currentColor;
+}
+
+/* Nút touch */
+.touch-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: rgba(0, 255, 255, 0.2);
+    border: 2px solid #00ffff;
+    color: #fff;
+    font-size: 24px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#touch-controls {
+    margin-top: 20px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.stats-box p {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.mode-selector {
+    margin-bottom: 25px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* Hoạt ảnh */
+@-webkit-keyframes rotate {
+    from { -webkit-transform: rotate(0deg); transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+}
+
+@keyframes rotate {
+    from { -webkit-transform: rotate(0deg); transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+}
+
+@-webkit-keyframes flash {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+@keyframes flash {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+    .container {
+        -webkit-flex-direction: column;
+        flex-direction: column;
+        -webkit-align-items: center;
+        align-items: center;
+        max-height: none;
+        padding: 20px;
+        gap: 20px;
+    }
+    
+    .game-grid, .hold-container, .next-pieces-container, .game-info {
+        order: 0;
+        width: 100%;
+    }
+    
+    .hold-container, .next-pieces-container {
+        -webkit-flex-direction: row;
+        flex-direction: row;
+        -webkit-justify-content: space-between;
+        justify-content: space-between;
+    }
+    
+    .next-pieces-queue {
+        -webkit-flex-direction: row;
+        flex-direction: row;
+    }
+    
+    .game-title {
+        font-size: 30px;
+        margin-bottom: 15px;
+    }
+}
+
+/* Toast notifications */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 5px;
+    border-left: 4px solid #00ffff;
+    font-family: 'Nunito', sans-serif;
+    opacity: 0;
+    -webkit-transition: opacity 0.3s;
+    transition: opacity 0.3s;
+    z-index: 1000;
+}
+
+/* Safari specific fixes */
+.safari canvas {
+    image-rendering: auto !important;
+}
+
+.safari .game-grid::after {
+    box-shadow: none;
+}
+
+/* Animation for Safari */
+@-webkit-keyframes comboFade {
+    0% { opacity: 0; -webkit-transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; -webkit-transform: translate(-50%, -50%) scale(1.2); }
+    80% { opacity: 1; -webkit-transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; -webkit-transform: translate(-50%, -50%) scale(1.1); }
+}
+
+@keyframes comboFade {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* Tetr.io style enhancements */
+.tetrio-style {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.tetrio-button {
+    background-color: #192a33;
+    color: #00ffff;
+    border: 2px solid #00ffff;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    -webkit-transition: all 0.2s;
+    transition: all 0.2s;
+}
+
+.tetrio-button:hover {
+    background-color: #00ffff;
+    color: #192a33;
+}
+
+/* Advanced AI indicators */
+.ai-indicator {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(0, 255, 255, 0.7);
+    -webkit-box-shadow: 0 0 5px #00ffff;
+    box-shadow: 0 0 5px #00ffff;
+    pointer-events: none;
+    z-index: 50;
+}
+
+.author-credit {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #00ffff;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    z-index: 1000;
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+    to {
+        text-shadow: 0 0 20px rgba(0, 255, 255, 0.8),
+                     0 0 30px rgba(0, 255, 255, 0.6);
+    }
+} 

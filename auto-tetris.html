@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>TETRIS.IO - Tự động chơi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Thêm một số CSS trực tiếp để tối ưu hiệu suất */
+        body {
+            background-color: #111;
+            color: white;
+            font-family: 'Nunito', sans-serif;
+        }
+        
+        .game-title {
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 40px;
+            letter-spacing: 5px;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+            color: #fff;
+            animation: pulse 1.5s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff; }
+            100% { text-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff; }
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+        
+        .auto-play-panel {
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            border: 2px solid #00ffff;
+            padding: 20px;
+            width: 300px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        
+        .button {
+            background-color: #00ffff;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 10px #00ffff;
+            margin: 10px 0;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #00ffff;
+        }
+        
+        .disabled {
+            background-color: #555;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
+        h2 {
+            color: #00ffff;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin: 10px 0;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .speed-value {
+            text-align: center;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .status {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 0 10px #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-title">TETRIS.IO</div>
+    
+    <div class="container">
+        <div class="auto-play-panel">
+            <h2>Tự động chơi</h2>
+            
+            <div class="status" id="status">
+                CHƯA BẮT ĐẦU
+            </div>
+            
+            <div class="controls">
+                <div id="start-auto" class="button">BẮT ĐẦU TỰ ĐỘNG CHƠI</div>
+                <div id="stop-auto" class="button disabled">DỪNG TỰ ĐỘNG CHƠI</div>
+                
+                <label for="speed">Tốc độ:</label>
+                <input type="range" id="speed" min="50" max="500" value="150">
+                <div class="speed-value" id="speed-value">150ms</div>
+                
+                <label for="difficulty">Độ khó:</label>
+                <input type="range" id="difficulty" min="1" max="5" value="3">
+                <div class="speed-value" id="difficulty-value">Trung bình</div>
+            </div>
+        </div>
+        
+        <div id="back-button" class="button" onclick="location.href='index.html'">
+            QUAY LẠI TRÒ CHƠI
+        </div>
+    </div>
+    
+    <!-- Thêm script Tetris chính -->
+    <script src="js/tetris.js"></script>
+    
+    <!-- Script điều khiển tự động chơi -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startButton = document.getElementById('start-auto');
+            const stopButton = document.getElementById('stop-auto');
+            const speedSlider = document.getElementById('speed');
+            const speedValue = document.getElementById('speed-value');
+            const difficultySlider = document.getElementById('difficulty');
+            const difficultyValue = document.getElementById('difficulty-value');
+            const statusDisplay = document.getElementById('status');
+            
+            let autoPlayInterval = null;
+            
+            // Cập nhật hiển thị giá trị tốc độ
+            speedSlider.addEventListener('input', function() {
+                const speed = speedSlider.value;
+                speedValue.textContent = speed + 'ms';
+                
+                // Cập nhật tốc độ nếu đang chạy
+                if (autoPlayInterval) {
+                    clearInterval(autoPlayInterval);
+                    startAutoPlay();
+                }
+            });
+            
+            // Cập nhật hiển thị giá trị độ khó
+            difficultySlider.addEventListener('input', function() {
+                const difficulty = parseInt(difficultySlider.value);
+                let difficultyText = '';
+                
+                switch(difficulty) {
+                    case 1: difficultyText = 'Rất dễ'; break;
+                    case 2: difficultyText = 'Dễ'; break;
+                    case 3: difficultyText = 'Trung bình'; break;
+                    case 4: difficultyText = 'Khó'; break;
+                    case 5: difficultyText = 'Rất khó'; break;
+                }
+                
+                difficultyValue.textContent = difficultyText;
+            });
+            
+            // Hàm bắt đầu tự động chơi
+            function startAutoPlay() {
+                const speed = parseInt(speedSlider.value);
+                
+                // Kiểm tra xem hàm tự động chơi có tồn tại không
+                let autoPlayFunction = window.improvedAutoPlay || window.autoPlay;
+                
+                if (autoPlayFunction) {
+                    // Đảm bảo game bắt đầu
+                    if (typeof window.isPaused !== 'undefined' && window.isPaused) {
+                        // Kích hoạt nút bắt đầu
+                        const startGameButton = document.getElementById('start-button');
+                        if (startGameButton) {
+                            startGameButton.click();
+                        }
+                    }
+                    
+                    autoPlayInterval = setInterval(autoPlayFunction, speed);
+                    
+                    startButton.classList.add('disabled');
+                    stopButton.classList.remove('disabled');
+                    statusDisplay.textContent = 'ĐANG CHẠY';
+                    statusDisplay.style.color = '#44ff44';
+                    statusDisplay.style.textShadow = '0 0 10px #44ff44';
+                } else {
+                    alert('Hàm tự động chơi không khả dụng! Vui lòng tải lại trang.');
+                }
+            }
+            
+            // Hàm dừng tự động chơi
+            function stopAutoPlay() {
+                if (autoPlayInterval) {
+                    clearInterval(autoPlayInterval);
+                    autoPlayInterval = null;
+                    
+                    startButton.classList.remove('disabled');
+                    stopButton.classList.add('disabled');
+                    statusDisplay.textContent = 'ĐÃ DỪNG';
+                    statusDisplay.style.color = '#ff4444';
+                    statusDisplay.style.textShadow = '0 0 10px #ff4444';
+                }
+            }
+            
+            // Gắn sự kiện cho các nút
+            startButton.addEventListener('click', function() {
+                if (!autoPlayInterval) {
+                    startAutoPlay();
+                }
+            });
+            
+            stopButton.addEventListener('click', function() {
+                stopAutoPlay();
+            });
+            
+            // Kiểm tra xem hàm tự động chơi có tồn tại không
+            setTimeout(function() {
+                if (window.improvedAutoPlay || window.autoPlay) {
+                    console.log('Hàm tự động chơi đã được tìm thấy!');
+                } else {
+                    console.log('Hàm tự động chơi không khả dụng!');
+                    statusDisplay.textContent = 'LỖI!';
+                    statusDisplay.style.color = '#ff4444';
+                    startButton.classList.add('disabled');
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html> 

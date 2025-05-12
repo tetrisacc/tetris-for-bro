@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Start Tetris</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        
+        .loading {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .progress {
+            width: 300px;
+            height: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #00ff00;
+            width: 0%;
+            transition: width 2s;
+        }
+        
+        .button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loading">Đang tải game...</div>
+        <div class="progress">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <button id="start-button" class="button hidden">BẮT ĐẦU GAME</button>
+    </div>
+    
+    <iframe id="game-frame" src="about:blank" style="width: 0; height: 0; border: 0;"></iframe>
+    
+    <script>
+        // Giả lập quá trình tải
+        let progress = 0;
+        const progressBar = document.getElementById('progress-bar');
+        const startButton = document.getElementById('start-button');
+        const gameFrame = document.getElementById('game-frame');
+        
+        const interval = setInterval(() => {
+            progress += 5;
+            progressBar.style.width = progress + '%';
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    // Hiển thị nút bắt đầu game
+                    startButton.classList.remove('hidden');
+                }, 500);
+            }
+        }, 100);
+        
+        // Khi nhấn nút bắt đầu
+        startButton.addEventListener('click', () => {
+            // Tự động chuyển đến game
+            window.location.href = 'index.html';
+        });
+        
+        // Tự động bắt đầu sau 3 giây nếu không nhấn nút
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 5000);
+    </script>
+</body>
+</html> 

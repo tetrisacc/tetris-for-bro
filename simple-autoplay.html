@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tự động chơi đơn giản</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #111;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        h1 {
+            color: #00ffff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        .button {
+            background-color: #00ffff;
+            color: black;
+            font-weight: bold;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00ffff;
+            margin: 10px;
+        }
+        
+        .button:hover {
+            background-color: white;
+            box-shadow: 0 0 20px white;
+        }
+        
+        .panel {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #00ffff;
+            width: 80%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+        
+        .panel h2 {
+            color: #00ffff;
+            text-align: center;
+            margin-top: 0;
+        }
+        
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        li {
+            margin: 10px 0;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .speed-control {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>TỰ ĐỘNG CHƠI TETRIS</h1>
+    
+    <div>
+        <button class="button" id="start-button">BẮT ĐẦU TỰ ĐỘNG CHƠI</button>
+        <button class="button" id="stop-button" style="background-color: #ff3333;">DỪNG</button>
+    </div>
+    
+    <div class="panel">
+        <h2>Hướng dẫn</h2>
+        <ol>
+            <li>Mở game Tetris trong tab khác</li>
+            <li>Nhấn nút BẮT ĐẦU TỰ ĐỘNG CHƠI</li>
+            <li>Chuyển đến tab Tetris ngay lập tức</li>
+            <li>Quay lại tab này và nhấn DỪNG khi muốn dừng</li>
+        </ol>
+        
+        <div class="speed-control">
+            <label for="speed">Tốc độ (ms): <span id="speed-value">500</span></label>
+            <input type="range" id="speed" min="100" max="1000" step="100" value="500" style="width: 100%;">
+        </div>
+    </div>
+    
+    <script>
+        let autoPlayInterval = null;
+        const speedSlider = document.getElementById('speed');
+        const speedValue = document.getElementById('speed-value');
+        
+        // Cập nhật hiển thị tốc độ
+        speedSlider.addEventListener('input', function() {
+            speedValue.textContent = this.value;
+            
+            // Cập nhật tốc độ nếu đang chạy
+            if (autoPlayInterval) {
+                stopAutoPlay();
+                startAutoPlay();
+            }
+        });
+        
+        // Hàm bắt đầu tự động chơi
+        function startAutoPlay() {
+            const speed = parseInt(speedSlider.value);
+            
+            // Thêm các phím sẽ được nhấn theo thứ tự
+            const keys = ['ArrowUp', 'ArrowLeft', 'ArrowLeft', 'ArrowRight', 'ArrowRight', ' '];
+            let keyIndex = 0;
+            
+            autoPlayInterval = setInterval(() => {
+                // Tạo sự kiện phím
+                const key = keys[keyIndex];
+                const event = new KeyboardEvent('keydown', { key });
+                
+                // Gửi sự kiện đến cửa sổ
+                window.dispatchEvent(event);
+                
+                // Tăng chỉ số phím, quay lại 0 khi đến cuối
+                keyIndex = (keyIndex + 1) % keys.length;
+            }, speed / keys.length);
+        }
+        
+        // Hàm dừng tự động chơi
+        function stopAutoPlay() {
+            clearInterval(autoPlayInterval);
+            autoPlayInterval = null;
+        }
+        
+        // Gắn sự kiện cho các nút
+        document.getElementById('start-button').addEventListener('click', startAutoPlay);
+        document.getElementById('stop-button').addEventListener('click', stopAutoPlay);
+    </script>
+</body>
+</html> 

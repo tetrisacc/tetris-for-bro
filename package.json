@@ -1,0 +1,13 @@
+{
+  "name": "tetris-game",
+  "version": "1.0.0",
+  "description": "Game Tetris cải tiến",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "open": "open http://localhost:8000",
+    "play": "npm run start & npm run open"
+  },
+  "author": "",
+  "license": "ISC"
+} 
