@@ -498,7 +498,7 @@ canvas {
     box-shadow: 0 0 5px #00ffff;
     pointer-events: none;
     z-index: 50;
-}
+} 
 
 .author-credit {
     position: fixed;

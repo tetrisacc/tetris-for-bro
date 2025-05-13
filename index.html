@@ -183,9 +183,6 @@
         <div class="option-button" id="settings-button" title="Cài đặt">⚙️</div>
         <div class="option-button" id="sound-toggle" title="Âm thanh">🔊</div>
         <div class="option-button" id="hint-toggle" title="Gợi ý">💡</div>
-        <a href="auto-tetris.html" style="text-decoration: none;">
-            <div class="option-button" title="Tự động chơi">🤖</div>
-        </a>
     </div>
 
     <div class="container">
@@ -286,19 +283,6 @@
             </div>
             
             <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 10px; color: white;">AI Thông minh:</label>
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <input type="checkbox" id="smart-ai-toggle" checked>
-                    <label for="smart-ai-toggle" style="color: white;">Kích hoạt AI nâng cao</label>
-                </div>
-                <input type="range" id="ai-level-slider" min="1" max="5" value="3" style="width: 100%;">
-                <div style="display: flex; justify-content: space-between; color: #aaa;">
-                    <span>Dễ</span>
-                    <span>Khó</span>
-                </div>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 10px; color: white;">Controls:</label>
                 <button id="customize-controls" style="background-color: #333; color: white; border: 1px solid #00ffff; padding: 8px; width: 100%; cursor: pointer; font-family: 'Nunito', sans-serif;">Tùy chỉnh phím</button>
             </div>
@@ -319,63 +303,6 @@
         document.body.classList.add('safari');
         console.log("Safari/iOS được phát hiện, áp dụng các tính năng tương thích");
     }
-    </script>
-
-    <!-- Nút tự động chơi cố định -->
-    <div id="fixed-autoplay-button" style="position: fixed; left: 20px; top: 200px; width: 80px; height: 80px; background-color: rgba(0,0,0,0.7); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 10000; border: 3px solid #00ffff; box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);">
-        <div style="font-size: 36px;">🤖</div>
-    </div>
-    
-    <!-- Script cho nút tự động chơi cố định -->
-    <script>
-        // Đơn giản hóa tự động chơi
-        document.getElementById('fixed-autoplay-button').addEventListener('click', function() {
-            if (!window.isAutoPlaying) {
-                window.isAutoPlaying = true;
-                
-                // Thay đổi màu nút
-                this.style.backgroundColor = '#00ffff';
-                this.querySelector('div').style.color = '#000';
-                
-                // Mảng các phím để chơi
-                const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', ' '];
-                
-                // Đảm bảo game bắt đầu
-                const startButton = document.getElementById('start-button');
-                if (startButton) {
-                    startButton.click();
-                }
-                
-                // Mô phỏng nhấn phím
-                window.autoPlayInterval = setInterval(function() {
-                    // Chọn phím ngẫu nhiên từ mảng
-                    const keyIndex = Math.floor(Math.random() * keys.length);
-                    const key = keys[keyIndex];
-                    
-                    // Mô phỏng nhấn phím
-                    const event = new KeyboardEvent('keydown', { key });
-                    document.dispatchEvent(event);
-                    
-                    // Nếu là Space, là phím thả rơi, chờ lâu hơn một chút
-                    if (key === ' ') {
-                        setTimeout(function() {
-                            // Chờ một chút rồi tiếp tục di chuyển, xoay
-                        }, 300);
-                    }
-                }, 200);
-                
-                console.log('Tự động chơi đã bắt đầu!');
-            } else {
-                window.isAutoPlaying = false;
-                clearInterval(window.autoPlayInterval);
-                
-                // Đổi lại màu nút
-                this.style.backgroundColor = 'rgba(0,0,0,0.7)';
-                this.querySelector('div').style.color = '#00ffff';
-                
-                console.log('Tự động chơi đã dừng!');
-            }
-        });
     </script>
 
     <script src="js/7bag_fix.js"></script>
