@@ -1044,29 +1044,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Bắt đầu đếm thời gian trước khi khóa khối
         startLockDelay() {
-            // Nếu đây là lần đầu tiên bắt đầu delay (không phải reset)
-            if (!lockDelayTimer && lockResetCount === 0) {
-                console.log("Bắt đầu lock delay mới");
-                lockStartTime = Date.now();
-                // Reset bộ đếm số lần reset khi bắt đầu một lock delay mới
-                lockResetCount = 0;
-            }
+            if (isGameOver) return;
             
-            // Lưu vị trí hiện tại của khối
-            lastGroundedPosition = {
-                x: this.x,
-                y: this.y,
-                shape: JSON.parse(JSON.stringify(this.shape)),
-                rotation: this.rotation
-            };
+            // Reset thời gian bắt đầu lock
+            lockStartTime = Date.now();
             
-            // Hủy bỏ timer hiện tại nếu có
-            if (lockDelayTimer) {
-                clearTimeout(lockDelayTimer);
-            }
-            
-            // Đặt lại timer mới - Đảm bảo đúng 500ms
-            console.log(`Đặt lock delay ${LOCK_DELAY}ms`);
+            // Đặt timer cho lock delay
             lockDelayTimer = setTimeout(() => {
                 this.forceLock();
             }, LOCK_DELAY);
@@ -1146,6 +1129,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     clearTimeout(lockDelayTimer);
                 }
                 
+                // Reset thời gian bắt đầu lock
+                lockStartTime = Date.now();
+                
                 // Đặt timer mới
                 lockDelayTimer = setTimeout(() => this.forceLock(), LOCK_DELAY);
                 
@@ -1160,6 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Nếu không còn ở mặt đất, hủy lock delay
                 clearTimeout(lockDelayTimer);
                 lockDelayTimer = null;
+                lockStartTime = 0;
             }
         }
         
@@ -1193,7 +1180,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 // Cập nhật thuộc tính rotation
-                this.rotation = (this.rotation + 3) % 4; // +3 thay vì -1 để tránh số âm
+                this.rotation = (this.rotation + 3) % 4;
             }
             
             // Thử áp dụng xoay
@@ -1202,7 +1189,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Kiểm tra va chạm sau khi xoay
             if (this.collision()) {
                 // Thử di chuyển sang trái/phải để tránh va chạm (wall kick)
-                // Sử dụng SRS (Super Rotation System) mở rộng (thêm nhiều vị trí hơn cho Tetr.io)
                 const wallKickOffsets = [
                     {x: 0, y: 0},   // Không dịch chuyển
                     {x: 1, y: 0},   // Dịch phải 1
@@ -1230,23 +1216,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Kiểm tra xem có đang ở mặt đất không
                         const isGrounded = this.checkGrounded();
                         
-                        // Luôn reset lock delay sau khi xoay thành công (theo kiểu Tetr.io)
-                        // mà không tính vào giới hạn MAX_LOCK_RESETS khi đang xoay
-                        const temp = lockResetCount;
-                        
                         // Nếu đang ở mặt đất, bắt đầu lock delay mới
                         if (isGrounded) {
                             if (!lockDelayTimer) {
                                 this.startLockDelay();
                             } else {
                                 this.resetLockDelay();
-                                // Giữ nguyên số lần reset sau khi xoay để không ảnh hưởng đến giới hạn
-                                lockResetCount = temp;
                             }
                         } else if (lockDelayTimer) {
                             // Nếu không còn ở mặt đất, hủy lock delay
                             clearTimeout(lockDelayTimer);
                             lockDelayTimer = null;
+                            lockStartTime = 0;
                         }
                         
                         break;
@@ -1273,21 +1254,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Nếu xoay thành công mà không cần wall kick
                 if (isGrounded) {
-                    // Lưu số lần reset hiện tại
-                    const temp = lockResetCount;
-                    
-                    // Reset lock delay 
                     if (!lockDelayTimer) {
                         this.startLockDelay();
                     } else {
                         this.resetLockDelay();
-                        // Giữ nguyên số lần reset sau khi xoay (đặc tính của Tetr.io)
-                        lockResetCount = temp;
                     }
                 } else if (lockDelayTimer) {
                     // Nếu không còn ở mặt đất, hủy lock delay
                     clearTimeout(lockDelayTimer);
                     lockDelayTimer = null;
+                    lockStartTime = 0;
                 }
             }
             
@@ -1597,8 +1573,13 @@ document.addEventListener('DOMContentLoaded', () => {
             fillNextPiecesQueue();
         }
         
-        // Reset lock reset count khi tạo khối mới
+        // Reset các biến lock
         lockResetCount = 0;
+        lockStartTime = 0;
+        if (lockDelayTimer) {
+            clearTimeout(lockDelayTimer);
+            lockDelayTimer = null;
+        }
         
         // Lấy khối tiếp theo từ hàng đợi
         currentPiece = nextPiecesQueue.shift();
@@ -1622,7 +1603,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPiece.collision()) {
             console.log("Game over - va chạm khi tạo khối mới");
             gameOver();
-            return; // Thêm return để ngăn tiếp tục chơi
+            return;
         }
     }
 
