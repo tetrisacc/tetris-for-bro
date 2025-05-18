@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Biến cho việc trì hoãn khi khối chạm đất
     const LOCK_DELAY = 500; // Thời gian trì hoãn chính xác 500ms
     const MAX_LOCK_RESETS = 15; // Số lần di chuyển/xoay tối đa trước khi buộc khóa
-    const MAX_LOCK_TIME = 5000; // Thời gian tối đa (5 giây) trước khi buộc khóa
+    const MAX_LOCK_TIME = 500; // Thời gian tối đa (0,5 giây) trước khi buộc khóa
     let lockDelayTimer = null;
     let lockResetCount = 0; // Đếm số lần reset lock delay
     let lockStartTime = 0; // Thời điểm bắt đầu trạng thái khóa
@@ -1121,48 +1121,45 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Reset delay khóa khi di chuyển hoặc xoay
         resetLockDelay() {
-            if (isGameOver || !canMove) return;
+            if (isGameOver) return;
             
             // Kiểm tra xem khối có đang chạm đất không
             const isGrounded = this.checkGrounded();
             
-            // Chỉ reset lock delay nếu khối đang ở trên mặt đất và có timer đang chạy
-            if (isGrounded && lockDelayTimer) {
-                // Kiểm tra xem vị trí hoặc hình dáng có thay đổi so với lần cuối không
-                const hasChanged = !lastGroundedPosition ||
-                    this.x !== lastGroundedPosition.x ||
-                    this.y !== lastGroundedPosition.y ||
-                    this.rotation !== lastGroundedPosition.rotation ||
-                    JSON.stringify(this.shape) !== JSON.stringify(lastGroundedPosition.shape);
-                
-                // Nếu có thay đổi, reset delay
-                if (hasChanged) {
-                    // Tăng bộ đếm reset
-                    lockResetCount++;
-                    console.log(`Reset lock delay lần thứ ${lockResetCount}/${MAX_LOCK_RESETS}`);
-                    
-                    // Reset timer
-                    clearTimeout(lockDelayTimer);
-                    
-                    // Kiểm tra nếu đã vượt quá giới hạn số lần reset
-                    if (lockResetCount >= MAX_LOCK_RESETS) {
-                        console.log("Đã đạt giới hạn tối đa số lần reset, sẽ khóa ngay lập tức");
-                        this.forceLock();
-                    } else {
-                        // Nếu chưa vượt quá giới hạn, đặt lại timer
-                        lockDelayTimer = setTimeout(() => {
-                            this.forceLock();
-                        }, LOCK_DELAY); // Luôn đảm bảo đúng 500ms
-                        
-                        // Cập nhật vị trí cuối
-                        lastGroundedPosition = {
-                            x: this.x,
-                            y: this.y,
-                            shape: JSON.parse(JSON.stringify(this.shape)),
-                            rotation: this.rotation
-                        };
-                    }
+            // Chỉ xử lý reset lock delay nếu khối đang ở trên mặt đất
+            if (isGrounded) {
+                // Kiểm tra giới hạn số lần reset
+                if (lockResetCount >= MAX_LOCK_RESETS) {
+                    showMessage("Đã hết số lần reset lock!");
+                    this.forceLock();
+                    return;
                 }
+                
+                // Tăng bộ đếm reset
+                lockResetCount++;
+                
+                // Hiển thị số lần reset còn lại
+                showMessage(`Số lần reset còn lại: ${MAX_LOCK_RESETS - lockResetCount}`);
+                
+                // Reset timer nếu đang có
+                if (lockDelayTimer) {
+                    clearTimeout(lockDelayTimer);
+                }
+                
+                // Đặt timer mới
+                lockDelayTimer = setTimeout(() => this.forceLock(), LOCK_DELAY);
+                
+                // Cập nhật vị trí mặt đất cuối cùng
+                lastGroundedPosition = { 
+                    x: this.x, 
+                    y: this.y,
+                    shape: JSON.parse(JSON.stringify(this.shape)),
+                    rotation: this.rotation
+                };
+            } else if (lockDelayTimer) {
+                // Nếu không còn ở mặt đất, hủy lock delay
+                clearTimeout(lockDelayTimer);
+                lockDelayTimer = null;
             }
         }
         
@@ -1600,23 +1597,26 @@ document.addEventListener('DOMContentLoaded', () => {
             fillNextPiecesQueue();
         }
         
+        // Reset lock reset count khi tạo khối mới
+        lockResetCount = 0;
+        
         // Lấy khối tiếp theo từ hàng đợi
         currentPiece = nextPiecesQueue.shift();
+        console.log("Đã lấy khối: " + getPieceName(currentPiece.pieceType));
         
         // Xuất khối hiện tại ra window để AI có thể truy cập
         window.currentPiece = currentPiece;
         
         // Thêm khối mới vào cuối hàng đợi từ túi
-        const randomIndex = getNextPieceFromBag();
-        const newPiece = new Piece(PIECES[randomIndex]);
+        const newPiece = randomPiece();
+        console.log("Thêm khối mới vào cuối hàng đợi: " + getPieceName(newPiece.pieceType));
         nextPiecesQueue.push(newPiece);
-        
-        // Log để debug
-        console.log("Khối hiện tại: " + getPieceName(currentPiece.pieceType));
-        console.log("Khối tiếp theo trong hàng đợi: " + nextPiecesQueue.map(p => getPieceName(p.pieceType)).join(", "));
         
         // Cập nhật hiển thị các khối tiếp theo
         updateNextPiecesDisplay();
+        
+        // Đặt lại trạng thái đã giữ cho lượt mới
+        hasHeldThisTurn = false;
         
         // Kiểm tra ngay khi tạo khối mới - nếu va chạm, game over
         if (currentPiece.collision()) {
@@ -3924,3 +3924,31 @@ window.autoPlay = function() {
 window.improvedAutoPlay = function() {
     return document.querySelector('#tetris-canvas') && eval('improvedAutoPlay()');
 }; 
+
+// Thêm hàm hiển thị thông báo
+function showMessage(message) {
+    const messageElement = document.getElementById('message');
+    if (!messageElement) {
+        const div = document.createElement('div');
+        div.id = 'message';
+        div.style.position = 'absolute';
+        div.style.top = '50%';
+        div.style.left = '50%';
+        div.style.transform = 'translate(-50%, -50%)';
+        div.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        div.style.color = 'white';
+        div.style.padding = '10px 20px';
+        div.style.borderRadius = '5px';
+        div.style.zIndex = '1000';
+        document.body.appendChild(div);
+    }
+    
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = message;
+    messageDiv.style.display = 'block';
+    
+    // Ẩn thông báo sau 1.5 giây
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 1500);
+} 
